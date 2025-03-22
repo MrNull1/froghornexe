@@ -1,40 +1,46 @@
 import cv2
 import os
 import sys
-from time import sleep
+import threading
+from pydub import AudioSegment
+from pydub.playback import play
+
+def play_audio(audio_path):
+    """Plays audio in a separate thread."""
+    audio = AudioSegment.from_file(audio_path)
+    play(audio)  # Blocks until audio finishes
 
 def play_video(video_path):
-    # Open the video file
+    """Plays video in fullscreen without exit option."""
     cap = cv2.VideoCapture(video_path)
-
     if not cap.isOpened():
         print(f"Error: Could not open video file {video_path}.")
         sys.exit(1)
 
     # Get video properties
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = cap.get(cv2.CAP_PROP_FPS)
+    frame_delay = int(1000 / fps) if fps > 0 else 30
 
-    # Create a fullscreen window
+    # Fullscreen window
     cv2.namedWindow("Video Player", cv2.WND_PROP_FULLSCREEN)
     cv2.setWindowProperty("Video Player", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
-    # Play the video
+    # Extract audio (runs in a separate thread)
+    audio_thread = threading.Thread(target=play_audio, args=(video_path,))
+    audio_thread.start()
+
+    # Play video frames
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
-            break
+            break  # Video ends
 
-        # Display the frame
         cv2.imshow("Video Player", frame)
+        cv2.waitKey(frame_delay)  # Frame timing
 
-        # Wait for the next frame
-        sleep(55)
-
-    # Release resources
     cap.release()
     cv2.destroyAllWindows()
+    audio_thread.join()  # Ensure audio finishes
 
 if __name__ == "__main__":
     video_path = "video.mp4"
