@@ -1,4 +1,5 @@
 # froghorn.exe
+###I'm too lazy to compile it so compile it yourself and submit a pr
 ## Usage
 Download the executable from the releases page and run, best done on windows because of the name lol.
 There's no actual malware, feel free to look at the code. All it does is open fullscreen and not close until the video has finished playing.
